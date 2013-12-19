@@ -1,65 +1,77 @@
 #include <SPI.h>
 
+//Add the SdFat Libraries
 #include <SdFat.h>
 #include <SdFatUtil.h>
 
+//and the MP3 Shield Library
 #include <SFEMP3Shield.h>
 
-#if defined(USE_MP3_REFILL_MEANS) && USE_MP3_REFILL_MEANS == USE_MP3_Timer1
-  #include <TimerOne.h>
-#elif defined(USE_MP3_REFILL_MEANS) && USE_MP3_REFILL_MEANS == USE_MP3_SimpleTimer
-  #include <SimpleTimer.h>
-#endif
-
-SdFat sd;
-
+//create and name the library object
 SFEMP3Shield MP3player;
-int16_t last_ms_char; // milliseconds of last recieved character from Serial port.
-int8_t buffer_pos; // next position to recieve character from Serial port.
 
-char buffer[6]; // 0-35K+null
+byte temp;
+byte result;
 
-int ldrPin[8] = { 5, 10, 11, 12, 13, A5, A4, A3};
-char* trackNames[8] = {"Saria.mp3", "Zelda.mp3", "Shiek.mp3", "Minuet.mp3", "Bolero.mp3", "Serenade.mp3", "Requiem.mp3", "Nocturne.mp3"};
+int ldrPin[8] = {5, A1, A2, 12, 13, A5, A4, A3};
+char* trackNames[8] = {"\"Saria.mp3\"", "\"Zelda.mp3\"", "\"Shiek.mp3\"", "\"Minuet.mp3\"", "\"Bolero.mp3\"", "\"Serenade.mp3\"", "\"Requiem.mp3\"", "\"Nocturne.mp3\""};
 
-void setup() {                
-
-  
-   uint8_t result; //result code from some function as to be tested at later time.
-
+void setup() {
   Serial.begin(115200);
-
-  Serial.print(F("Free RAM = ")); // available in Version 1.0 F() bases the string to into Flash, to use less SRAM.
-  Serial.print(FreeRam(), DEC);  // FreeRam() is provided by SdFatUtil.h
-  Serial.println(F(" Should be a base line of 1029, on ATmega328 when using INTx"));
-
-
-  //Initialize the SdCard.
-  if(!sd.begin(SD_SEL, SPI_HALF_SPEED)) sd.initErrorHalt();
-  if(!sd.chdir("/")) sd.errorHalt("sd.chdir");
-
-  //Initialize the MP3 Player Shield
+  
+  //boot up the MP3 Player Shield
   result = MP3player.begin();
   //check result, see readme for error codes.
   if(result != 0) {
-    Serial.print(F("Error code: "));
+    Serial.print("Error code: ");
     Serial.print(result);
-    Serial.println(F(" when trying to start MP3 player"));
-    if( result == 6 ) {
-      Serial.println(F("Warning: patch file not found, skipping.")); // can be removed for space, if needed.
-      Serial.println(F("Use the \"d\" command to verify SdCard can be read")); // can be removed for space, if needed.
-    }
+    Serial.println(" when trying to start MP3 player");
   }
   
-}
+  for (int i = 0; i < 8; i++) {
+    pinMode(ldrPin[i], INPUT);
+  }
 
+  MP3player.SetVolume(0,0);
+}
 
 void loop() {
-   
-    for (int i = 0; i<8; i++) {
-        if (ldrPin[i] == 0) {
-          Mp3player.playTrack(trackNames[i]);
+ 
+   /* for (int i = 3; i< 5; i++) {
+      if (digitalRead(ldrPin[0]) == 0 && i != 3 && i !=4) {
+         MP3player.playMP3(trackNames[i]);
         }
     }
-}
+   */
+   if (digitalRead(ldrPin[0]) == 0) {
+     MP3player.playMP3("Zelda.mp3");  
+   }
 
+}
+  
+  /*for (int i = 0; i < 8; i++) {
+    Serial.print("LDR pin ");
+    switch (ldrPin[i]) {
+      case 19:
+        Serial.print("A5");
+        break;
+      case 18:
+        Serial.print("A4");
+        break;
+      case 17:
+        Serial.print("A3");
+        break;
+      default:
+        Serial.print(ldrPin[i]);
+        break;
+    }
+    Serial.print(" - ");
+    if (digitalRead(ldrPin[i]) == 0) {
+      Serial.println("off");
+    } else {
+      Serial.println("on");
+    }
+    delay(500);
+  }
+  Serial.println("_____________________________________");
+}*/
